@@ -70,15 +70,9 @@ client.on('interactionCreate', async (interaction) => {
 
         const queue = useQueue(interaction.guildId);
 
-        if (!queue?.isPlaying()) {
-            const embed = EmbedGenerator.Error({
-                title: 'Not playing',
-                description: 'I am not playing anything right now',
-            }).withAuthor(interaction.user);
-
-            return interaction.editReply({ embeds: [embed] });
+        if (!queue) {
+            return interaction.reply('Nic nie śpiewam debilu!');
         }
-
         queue.node.skip();
         return interaction.reply(`Skipuje ten shiton!`);
 

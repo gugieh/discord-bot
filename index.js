@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { Client, IntentsBitField } = require('discord.js')
 const { joinVoiceChannel } = require('@discordjs/voice');
-const { useMainPlayer } = require('discord-player');
+const { useQueue, useMainPlayer } = require('discord-player');
 const { Player } = require('discord-player');
 
 const client = new Client({
@@ -15,6 +15,7 @@ const client = new Client({
 });
 
 const player = new Player(client);
+player.extractors.loadDefault()
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`)
@@ -43,27 +44,43 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'play') {
 
         const player = useMainPlayer();
-        player.extractors.loadDefault()
-        const channel = interaction.member.voice.channel;
-        if (!channel) return interaction.reply('You are not connected to a voice channel!'); // make sure we have a voice channel
-        const query = interaction.options.getString('song', true); // we need input/query to play
 
-        // let's defer the interaction as things can take time to process
+        const channel = interaction.member.voice.channel;
+        if (!channel) return interaction.reply('Nie ma cie na kanale!');
+        const query = interaction.options.getString('song', true);
+
         await interaction.deferReply();
 
         try {
             const { track } = await player.play(channel, query, {
                 nodeOptions: {
-                    // nodeOptions are the options for guild node (aka your queue in simple word)
-                    metadata: interaction // we can access this metadata object using queue.metadata later on
+                    metadata: interaction
                 }
             });
 
-            return interaction.followUp(`**${track.title}** enqueued!`);
+            return interaction.followUp(`Śpiewać muszę bo się udusze: **${track.title}**   ${query}`);
         } catch (e) {
-            // let's return error if something failed
-            return interaction.followUp(`Something went wrong: ${e}`);
+            return interaction.followUp(`Coś się zepsuło: ${e}`);
         }
+
+    }
+    if (commandName === 'skip') {
+        const channel = interaction.member.voice.channel;
+        if (!channel) return interaction.reply('Nie ma cie na kanale!');
+
+        const queue = useQueue(interaction.guildId);
+
+        if (!queue?.isPlaying()) {
+            const embed = EmbedGenerator.Error({
+                title: 'Not playing',
+                description: 'I am not playing anything right now',
+            }).withAuthor(interaction.user);
+
+            return interaction.editReply({ embeds: [embed] });
+        }
+
+        queue.node.skip();
+        return interaction.reply(`Skipuje ten shiton!`);
 
     }
 })

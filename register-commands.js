@@ -25,6 +25,10 @@ const commands = [
                 }
             }
         }
+    },
+    {
+        name: 'skip',
+        description: 'Skips the current song',
     }
 ];
 

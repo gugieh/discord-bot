@@ -22,7 +22,6 @@ client.on('ready', () => {
 })
 
 client.on('messageCreate', (message) => {
-    console.log(message.content)
     if (message.author.bot) {
         return;
     }
